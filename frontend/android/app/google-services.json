@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "879575722711",
+    "project_id": "tech-solutions-3d0b6",
+    "storage_bucket": "tech-solutions-3d0b6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:879575722711:android:667f6225523a7285a8de92",
+        "android_client_info": {
+          "package_name": "com.yourcompany.gas_cylinder_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeP_w40o-GKJAYZw1uASnsDH1-7bsLYIc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

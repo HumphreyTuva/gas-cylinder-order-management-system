@@ -14,8 +14,8 @@ Future<void> main() async {
 
   await dotenv.load(fileName: '.env');
 
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await PushNotificationService.initialize();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await PushNotificationService.initialize();
 
   runApp(const GasCylinderApp());
 }
