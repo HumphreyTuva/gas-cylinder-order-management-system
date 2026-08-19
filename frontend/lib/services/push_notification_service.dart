@@ -55,13 +55,15 @@ class PushNotificationService {
   }
 
   static Future<void> syncTokenWithBackend() async {
-    final token = await _messaging.getToken();
-    if (token != null) {
-      try {
-        await _authService.registerFcmToken(token);
-      } catch (_) {
-        // Non-fatal: user may not be logged in yet, or backend unreachable.
+    try {
+      final token = await _messaging.getToken().timeout(const Duration(seconds: 8));
+      if (token != null) {
+        await _authService.registerFcmToken(token).timeout(const Duration(seconds: 8));
       }
+    } catch (_) {
+      // Non-fatal: user may not be logged in yet, backend unreachable, or the
+      // call timed out. Push notifications simply won't register this time;
+      // the next onTokenRefresh or app restart will retry.
     }
   }
 }

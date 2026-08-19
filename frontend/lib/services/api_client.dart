@@ -61,6 +61,14 @@ class ApiClient {
     );
   }
 
+  Future<dynamic> delete(String path) async {
+    return _send(
+      () async => http.delete(_uri(path), headers: await _headers()),
+      path,
+      method: 'DELETE',
+    );
+  }
+
   /// Generic request executor with a single automatic retry after refreshing
   /// the access token if the server responds 401 Unauthorized.
   Future<dynamic> _send(
