@@ -17,6 +17,7 @@ class OrderSerializer(serializers.ModelSerializer):
     cylinder_type_detail = CylinderTypeSerializer(source="cylinder_type", read_only=True)
     customer_username = serializers.CharField(source="customer.username", read_only=True)
     status_history = OrderStatusHistorySerializer(many=True, read_only=True)
+    is_paid = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -24,12 +25,15 @@ class OrderSerializer(serializers.ModelSerializer):
             "id", "order_number", "customer", "customer_username", "order_type",
             "cylinder_type", "cylinder_type_detail", "quantity", "status",
             "delivery_address", "delivery_phone_number", "delivery_notes",
-            "total_amount", "handled_by", "status_history", "created_at", "updated_at",
+            "total_amount", "handled_by", "status_history", "is_paid", "created_at", "updated_at",
         ]
         read_only_fields = [
             "id", "order_number", "customer", "status", "total_amount",
-            "handled_by", "status_history", "created_at", "updated_at",
+            "handled_by", "status_history", "is_paid", "created_at", "updated_at",
         ]
+
+    def get_is_paid(self, obj):
+        return obj.payments.filter(status="successful").exists()
 
     def validate(self, attrs):
         order_type = attrs.get("order_type")

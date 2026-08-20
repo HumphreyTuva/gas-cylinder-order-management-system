@@ -34,6 +34,7 @@ class GasOrder {
   final String deliveryPhoneNumber;
   final String? deliveryNotes;
   final double totalAmount;
+  final bool isPaid;
   final List<OrderStatusEvent> statusHistory;
   final DateTime createdAt;
 
@@ -50,6 +51,7 @@ class GasOrder {
     required this.deliveryPhoneNumber,
     required this.deliveryNotes,
     required this.totalAmount,
+    required this.isPaid,
     required this.statusHistory,
     required this.createdAt,
   });
@@ -76,6 +78,7 @@ class GasOrder {
       deliveryPhoneNumber: json['delivery_phone_number'] ?? '',
       deliveryNotes: json['delivery_notes'],
       totalAmount: double.tryParse(json['total_amount'].toString()) ?? 0,
+      isPaid: json['is_paid'] ?? false,
       statusHistory: (json['status_history'] as List? ?? [])
           .map((e) => OrderStatusEvent.fromJson(e))
           .toList(),

@@ -39,6 +39,13 @@ class OrderViewSet(viewsets.ModelViewSet):
         order = serializer.save(customer=self.request.user)
         OrderStatusHistory.objects.create(order=order, status=order.status, changed_by=self.request.user, note="Order placed.")
 
+        # Remember this delivery address as the customer's new default so
+        # future orders are pre-filled with wherever they last had things sent.
+        user = self.request.user
+        if user.is_customer and order.delivery_address and order.delivery_address != user.default_delivery_address:
+            user.default_delivery_address = order.delivery_address
+            user.save(update_fields=["default_delivery_address"])
+
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsStaffOrManagement])
     def update_status(self, request, pk=None):
         order = self.get_object()

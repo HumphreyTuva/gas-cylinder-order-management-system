@@ -7,7 +7,6 @@ import '../../services/cylinder_service.dart';
 import '../../services/order_service.dart';
 import '../../widgets/loading_button.dart';
 import 'order_detail_screen.dart';
-
 class PlaceOrderScreen extends StatefulWidget {
   final String orderType; // purchase | refill
   const PlaceOrderScreen({super.key, required this.orderType});
@@ -74,6 +73,12 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
         deliveryPhoneNumber: _phoneController.text.trim(),
         deliveryNotes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       );
+      // The backend remembers this address as the customer's new default,
+      // so refresh the cached profile now to keep future orders in sync.
+      if (mounted) {
+        // ignore: use_build_context_synchronously
+        context.read<AuthProvider>().refreshUser();
+      }
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),

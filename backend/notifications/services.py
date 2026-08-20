@@ -117,13 +117,40 @@ def notify_payment_status_change(payment):
         title, message = "Payment Cancelled", f"Your payment for order {payment.order.order_number} was cancelled."
     else:
         return None
-    return create_notification(
+
+    notification = create_notification(
         user=payment.customer,
         notification_type="payment_confirmation",
         title=title,
         message=message,
         related_order=payment.order,
     )
+
+    if payment.status == "successful":
+        _notify_staff_of_payment(payment)
+
+    return notification
+
+
+def _notify_staff_of_payment(payment):
+    """Lets staff/management know a customer has paid, so they can act on the
+    order without having to check the dashboard proactively."""
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    staff_and_management = User.objects.filter(role__in=[User.Role.STAFF, User.Role.MANAGEMENT])
+    method_label = "M-Pesa" if payment.method == "mpesa" else "Card"
+    for staff_user in staff_and_management:
+        create_notification(
+            user=staff_user,
+            notification_type="payment_confirmation",
+            title="Payment Received",
+            message=(
+                f"{payment.customer.username} paid KES {payment.amount} via {method_label} "
+                f"for order {payment.order.order_number}."
+            ),
+            related_order=payment.order,
+        )
 
 
 def notify_delivery_status_change(delivery):

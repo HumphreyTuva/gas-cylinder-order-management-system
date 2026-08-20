@@ -17,6 +17,7 @@ from .serializers import (
     ManualPaymentConfirmationSerializer,
     PaymentSerializer,
 )
+from .utils import InvalidPhoneNumberError, normalize_kenyan_phone_number
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,17 @@ class InitiateMpesaPaymentView(APIView):
         serializer = InitiateMpesaPaymentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = _get_owned_order_or_404(request, serializer.validated_data["order"])
-        phone_number = serializer.validated_data["phone_number"]
+
+        if order.payments.filter(status=Payment.Status.SUCCESSFUL).exists():
+            return Response(
+                {"detail": "This order has already been paid for."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            phone_number = normalize_kenyan_phone_number(serializer.validated_data["phone_number"])
+        except InvalidPhoneNumberError as exc:
+            return Response({"phone_number": [str(exc)]}, status=status.HTTP_400_BAD_REQUEST)
 
         payment = Payment.objects.create(
             order=order,
@@ -140,6 +151,12 @@ class InitiateCardPaymentView(APIView):
         serializer = InitiateCardPaymentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = _get_owned_order_or_404(request, serializer.validated_data["order"])
+
+        if order.payments.filter(status=Payment.Status.SUCCESSFUL).exists():
+            return Response(
+                {"detail": "This order has already been paid for."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         payment = Payment.objects.create(
             order=order,

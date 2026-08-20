@@ -92,6 +92,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         if (order.deliveryNotes?.isNotEmpty == true) _row('Notes', order.deliveryNotes!),
                         const Divider(height: 24),
                         _row('Total Amount', 'KES ${order.totalAmount.toStringAsFixed(0)}', bold: true),
+                        if (order.isPaid) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: const [
+                              Icon(Icons.check_circle, color: Colors.green, size: 18),
+                              SizedBox(width: 6),
+                              Text('Paid', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -113,7 +123,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     icon: const Icon(Icons.cancel_outlined, color: Colors.red),
                     label: const Text('Cancel Order', style: TextStyle(color: Colors.red)),
                   ),
-                if (['pending', 'confirmed', 'processing'].contains(order.status))
+                if (['pending', 'confirmed', 'processing'].contains(order.status) && !order.isPaid)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: ElevatedButton.icon(

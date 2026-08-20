@@ -136,7 +136,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: _waitingForConfirmation ? _buildWaitingState() : _buildFormState(),
+          child: _waitingForConfirmation
+              ? _buildWaitingState()
+              : SingleChildScrollView(
+                  child: _buildFormState(),
+                ),
         ),
       ),
     );
@@ -203,7 +207,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(
               labelText: 'M-Pesa Phone Number',
-              hintText: '2547XXXXXXXX',
+              hintText: 'e.g. 0712345678, 254712345678, or +254712345678',
               prefixIcon: Icon(Icons.phone_outlined),
             ),
           ),

@@ -100,4 +100,16 @@ class AuthProvider extends ChangeNotifier {
     _status = AuthStatus.unauthenticated;
     notifyListeners();
   }
+
+  /// Re-fetches the current user's profile from the backend. Call this after
+  /// an action that may have changed something the profile shows (e.g. the
+  /// backend auto-updates default_delivery_address after a new order).
+  Future<void> refreshUser() async {
+    try {
+      _user = await _authService.fetchMe();
+      notifyListeners();
+    } catch (_) {
+      // Non-fatal: keep showing the last known profile if this fails.
+    }
+  }
 }
