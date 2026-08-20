@@ -5,7 +5,8 @@ Configure these in your environment / .env (see config/settings.py):
     MPESA_ENV                 = "sandbox" or "production"
     MPESA_CONSUMER_KEY
     MPESA_CONSUMER_SECRET
-    MPESA_SHORTCODE           (Paybill/Till number)
+    MPESA_SHORTCODE           (Store / Head Office Shortcode for authentication)
+    MPESA_TILL_NUMBER         (The actual Till number receiving funds)
     MPESA_PASSKEY
     MPESA_CALLBACK_URL        (publicly reachable HTTPS URL for payment confirmation)
 
@@ -38,6 +39,7 @@ def get_access_token() -> str:
 
 
 def _password_and_timestamp():
+    # Password generation uses the Head Office shortcode
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     raw = f"{settings.MPESA_SHORTCODE}{settings.MPESA_PASSKEY}{timestamp}"
     password = base64.b64encode(raw.encode()).decode()
@@ -58,13 +60,13 @@ def initiate_stk_push(*, phone_number: str, amount, account_reference: str, tran
         "BusinessShortCode": settings.MPESA_SHORTCODE,
         "Password": password,
         "Timestamp": timestamp,
-        "TransactionType": "CustomerPayBillOnline",
+        "TransactionType": "CustomerBuyGoodsOnline",  # Updated for Till
         "Amount": int(amount),
         "PartyA": phone_number,
-        "PartyB": settings.MPESA_SHORTCODE,
+        "PartyB": settings.MPESA_TILL_NUMBER,         # Updated to route funds to Till
         "PhoneNumber": phone_number,
         "CallBackURL": settings.MPESA_CALLBACK_URL,
-        "AccountReference": account_reference,
+        "AccountReference": account_reference,        # Safaricom requires this field even for Tills
         "TransactionDesc": transaction_desc,
     }
     response = requests.post(

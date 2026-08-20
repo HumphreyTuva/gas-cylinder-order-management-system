@@ -10,6 +10,11 @@ class PaymentService {
     return (results as List).map((e) => Payment.fromJson(e)).toList();
   }
 
+  Future<Payment> fetchPayment(String id) async {
+    final data = await _api.get('payments/$id/');
+    return Payment.fromJson(data);
+  }
+
   /// Triggers an M-Pesa STK push. The customer will get a prompt on their
   /// phone to enter their M-Pesa PIN. Poll fetchPayments() or listen for a
   /// push notification to know when it completes.

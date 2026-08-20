@@ -146,13 +146,15 @@ CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL_ORIGINS", default=True)  # tig
 
 # --- M-Pesa (Safaricom Daraja) ----------------------------------------------
 
+# --- M-Pesa (Safaricom Daraja) ----------------------------------------------
+
 MPESA_ENV = env("MPESA_ENV", default="sandbox")
 MPESA_CONSUMER_KEY = env("MPESA_CONSUMER_KEY", default="")
 MPESA_CONSUMER_SECRET = env("MPESA_CONSUMER_SECRET", default="")
 MPESA_SHORTCODE = env("MPESA_SHORTCODE", default="174379")
+MPESA_TILL_NUMBER = env("MPESA_TILL_NUMBER", default="") # <-- ADD THIS LINE
 MPESA_PASSKEY = env("MPESA_PASSKEY", default="")
 MPESA_CALLBACK_URL = env("MPESA_CALLBACK_URL", default="https://example.com/api/payments/mpesa/callback/")
-
 # --- Firebase Cloud Messaging -----------------------------------------------
 
 FIREBASE_CREDENTIALS_PATH = env(

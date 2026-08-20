@@ -109,12 +109,40 @@ class ApiClient {
       return decoded;
     }
 
-    String message = 'Request failed (${response.statusCode})';
-    if (decoded is Map && decoded.isNotEmpty) {
-      message = decoded.values.first is List ? decoded.values.first.first.toString() : decoded.values.first.toString();
-      if (decoded.containsKey('detail')) message = decoded['detail'].toString();
+    throw ApiException(response.statusCode, _extractErrorMessage(decoded, response.statusCode), decoded);
+  }
+
+  /// Django REST Framework returns validation errors as a map of
+  /// field name -> list of error strings, e.g.
+  ///   {"phone_number": ["user with this phone number already exists."]}
+  ///   {"password": ["This password is too common.", "This password is entirely numeric."]}
+  /// This turns that into a readable, field-labelled message instead of a
+  /// generic "Request failed (400)".
+  String _extractErrorMessage(dynamic decoded, int statusCode) {
+    if (decoded is! Map || decoded.isEmpty) {
+      return 'Request failed ($statusCode)';
     }
-    throw ApiException(response.statusCode, message, decoded);
+    if (decoded.containsKey('detail')) {
+      return decoded['detail'].toString();
+    }
+
+    final parts = <String>[];
+    decoded.forEach((key, value) {
+      final text = value is List ? value.join(' ') : value.toString();
+      if (key == 'non_field_errors' || key == '__all__') {
+        parts.add(text);
+      } else {
+        parts.add('${_humanizeFieldName(key)}: $text');
+      }
+    });
+    return parts.isNotEmpty ? parts.join('\n') : 'Request failed ($statusCode)';
+  }
+
+  String _humanizeFieldName(String field) {
+    return field
+        .split('_')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
   }
 
   Future<bool> _tryRefreshToken() async {
