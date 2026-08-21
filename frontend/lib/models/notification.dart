@@ -25,7 +25,7 @@ class AppNotification {
       message: json['message'] ?? '',
       relatedOrder: json['related_order']?.toString(),
       isRead: json['is_read'] ?? false,
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['created_at']).toLocal(),
     );
   }
 }

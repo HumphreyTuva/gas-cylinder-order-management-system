@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -16,15 +18,33 @@ class OrderListScreen extends StatefulWidget {
 class _OrderListScreenState extends State<OrderListScreen> {
   final _orderService = OrderService();
   late Future<List<GasOrder>> _ordersFuture;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _ordersFuture = _orderService.fetchOrders();
+    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) => _silentRefresh());
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _refresh() async {
     setState(() => _ordersFuture = _orderService.fetchOrders());
+  }
+
+  Future<void> _silentRefresh() async {
+    if (!mounted) return;
+    try {
+      final updated = await _orderService.fetchOrders();
+      if (mounted) setState(() => _ordersFuture = Future.value(updated));
+    } catch (_) {
+      // Transient network hiccup -- next poll will try again.
+    }
   }
 
   @override

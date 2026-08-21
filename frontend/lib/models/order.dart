@@ -16,7 +16,7 @@ class OrderStatusEvent {
       status: json['status'],
       changedByUsername: json['changed_by_username'],
       note: json['note'],
-      changedAt: DateTime.parse(json['changed_at']),
+      changedAt: DateTime.parse(json['changed_at']).toLocal(),
     );
   }
 }
@@ -82,7 +82,7 @@ class GasOrder {
       statusHistory: (json['status_history'] as List? ?? [])
           .map((e) => OrderStatusEvent.fromJson(e))
           .toList(),
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['created_at']).toLocal(),
     );
   }
 }

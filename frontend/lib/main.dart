@@ -14,7 +14,17 @@ Future<void> main() async {
 
   await dotenv.load(fileName: '.env');
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // With google-services.json present, Android sometimes auto-initializes
+  // the default Firebase app natively before this explicit call runs. When
+  // that happens, initializeApp() throws "duplicate-app" -- which is fine,
+  // it just means Firebase is already ready, so we catch and ignore only
+  // that specific case (anything else still surfaces as a real error).
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') rethrow;
+  }
+
   await PushNotificationService.initialize();
 
   runApp(const GasCylinderApp());

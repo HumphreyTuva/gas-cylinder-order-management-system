@@ -25,7 +25,7 @@ class Payment {
       method: json['method'] ?? '',
       status: json['status'] ?? 'pending',
       transactionReference: json['transaction_reference'],
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['created_at']).toLocal(),
     );
   }
 }

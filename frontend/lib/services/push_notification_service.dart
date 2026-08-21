@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'auth_service.dart';
@@ -17,19 +18,30 @@ class PushNotificationService {
 
   /// Call once after Firebase.initializeApp() and after the user is logged in.
   static Future<void> initialize() async {
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    try {
+      final settings = await _messaging.requestPermission(alert: true, badge: true, sound: true);
+      debugPrint('[Push] Permission status: ${settings.authorizationStatus}');
+    } catch (e, st) {
+      debugPrint('[Push] requestPermission() threw: $e');
+      debugPrint('$st');
+    }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
-    await _localNotifications.initialize(
-      const InitializationSettings(android: androidInit, iOS: iosInit),
-    );
+    try {
+      await _localNotifications.initialize(
+        const InitializationSettings(android: androidInit, iOS: iosInit),
+      );
+    } catch (e) {
+      debugPrint('[Push] Local notifications init failed: $e');
+    }
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     // Foreground messages: FCM does not auto-show a system tray notification
     // while the app is open, so we display one via flutter_local_notifications.
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('[Push] Foreground message received: ${message.notification?.title}');
       final notification = message.notification;
       if (notification != null) {
         _localNotifications.show(
@@ -51,19 +63,34 @@ class PushNotificationService {
     });
 
     await syncTokenWithBackend();
-    _messaging.onTokenRefresh.listen((_) => syncTokenWithBackend());
+    _messaging.onTokenRefresh.listen((newToken) {
+      debugPrint('[Push] Token refreshed: $newToken');
+      syncTokenWithBackend();
+    });
   }
 
   static Future<void> syncTokenWithBackend() async {
+    String? token;
     try {
-      final token = await _messaging.getToken().timeout(const Duration(seconds: 8));
-      if (token != null) {
-        await _authService.registerFcmToken(token).timeout(const Duration(seconds: 8));
-      }
-    } catch (_) {
-      // Non-fatal: user may not be logged in yet, backend unreachable, or the
-      // call timed out. Push notifications simply won't register this time;
-      // the next onTokenRefresh or app restart will retry.
+      token = await _messaging.getToken().timeout(const Duration(seconds: 10));
+      debugPrint('[Push] getToken() returned: $token');
+    } catch (e, st) {
+      debugPrint('[Push] getToken() FAILED: $e');
+      debugPrint('$st');
+      return;
+    }
+
+    if (token == null) {
+      debugPrint('[Push] getToken() returned null -- nothing to register.');
+      return;
+    }
+
+    try {
+      await _authService.registerFcmToken(token).timeout(const Duration(seconds: 10));
+      debugPrint('[Push] Token registered with backend successfully.');
+    } catch (e, st) {
+      debugPrint('[Push] registerFcmToken() FAILED: $e');
+      debugPrint('$st');
     }
   }
 }
