@@ -21,7 +21,9 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   }
 
   void _refresh() {
-    setState(() => _future = _service.fetchCustomers());
+    setState(() {
+      _future = _service.fetchCustomers();
+    });
   }
 
   @override

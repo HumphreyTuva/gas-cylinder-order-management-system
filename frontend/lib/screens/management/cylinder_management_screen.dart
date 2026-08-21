@@ -22,7 +22,9 @@ class _CylinderManagementScreenState extends State<CylinderManagementScreen> {
   }
 
   void _refresh() {
-    setState(() => _future = _service.fetchCatalogue());
+    setState(() {
+      _future = _service.fetchCatalogue();
+    });
   }
 
   Future<void> _openForm({CylinderType? existing}) async {

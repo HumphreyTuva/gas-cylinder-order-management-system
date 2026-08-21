@@ -34,14 +34,20 @@ class _OrderListScreenState extends State<OrderListScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _ordersFuture = _orderService.fetchOrders());
+    setState(() {
+      _ordersFuture = _orderService.fetchOrders();
+    });
   }
 
   Future<void> _silentRefresh() async {
     if (!mounted) return;
     try {
       final updated = await _orderService.fetchOrders();
-      if (mounted) setState(() => _ordersFuture = Future.value(updated));
+      if (mounted) {
+        setState(() {
+          _ordersFuture = Future.value(updated);
+        });
+      }
     } catch (_) {
       // Transient network hiccup -- next poll will try again.
     }

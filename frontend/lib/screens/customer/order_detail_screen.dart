@@ -52,7 +52,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (!mounted) return;
     try {
       final updated = await _orderService.fetchOrder(widget.orderId);
-      if (mounted) setState(() => _orderFuture = Future.value(updated));
+      if (mounted) {
+        setState(() {
+          _orderFuture = Future.value(updated);
+        });
+      }
     } catch (_) {
       // Transient network hiccup -- next poll will try again.
     }

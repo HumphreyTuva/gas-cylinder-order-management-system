@@ -22,7 +22,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _catalogueFuture = _cylinderService.fetchCatalogue());
+    setState(() {
+      _catalogueFuture = _cylinderService.fetchCatalogue();
+    });
   }
 
   @override

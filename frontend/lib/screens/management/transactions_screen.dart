@@ -23,7 +23,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   void _refresh() {
-    setState(() => _future = _service.fetchPayments());
+    setState(() {
+      _future = _service.fetchPayments();
+    });
   }
 
   @override

@@ -22,7 +22,9 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
   }
 
   void _refresh() {
-    setState(() => _future = _service.fetchStaff());
+    setState(() {
+      _future = _service.fetchStaff();
+    });
   }
 
   Future<void> _openForm() async {

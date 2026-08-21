@@ -25,7 +25,9 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _summaryFuture = _dashboardService.fetchSummary());
+    setState(() {
+      _summaryFuture = _dashboardService.fetchSummary();
+    });
   }
 
   @override
