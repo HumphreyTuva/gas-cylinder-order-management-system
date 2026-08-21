@@ -33,6 +33,12 @@ class StaffService {
     return AppUser.fromJson(data);
   }
 
+  Future<List<AppUser>> fetchCustomers() async {
+    final data = await _api.get('accounts/customers/');
+    final results = data is Map && data.containsKey('results') ? data['results'] : data;
+    return (results as List).map((e) => AppUser.fromJson(e)).toList();
+  }
+
   /// Management only. Deactivates (soft-deletes) a staff/management account.
   Future<void> deactivateStaff(String id) async {
     await _api.delete('accounts/staff/$id/');
