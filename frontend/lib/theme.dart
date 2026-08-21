@@ -16,8 +16,8 @@ class AppTheme {
           style: ElevatedButton.styleFrom(
             backgroundColor: primary,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+            shape: const StadiumBorder(),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(

@@ -39,6 +39,9 @@ def _get_firebase_app():
 
 
 def send_push_notification(fcm_token: str, title: str, body: str, data: dict | None = None) -> bool:
+    """Sends to a single device token. Returns False (and cleans up the stale
+    token) if FCM reports the token is no longer valid, e.g. the app was
+    uninstalled or the token expired."""
     if not fcm_token:
         return False
     app = _get_firebase_app()
@@ -54,13 +57,21 @@ def send_push_notification(fcm_token: str, title: str, body: str, data: dict | N
         )
         messaging.send(message)
         return True
-    except Exception:  # noqa: BLE001
-        logger.exception("Failed to send FCM push notification.")
+    except Exception as exc:  # noqa: BLE001
+        error_name = type(exc).__name__
+        if "Unregistered" in error_name or "InvalidArgument" in error_name or "SenderId" in error_name:
+            # Token is dead (app uninstalled, token rotated elsewhere, etc.)
+            # -- remove it so we stop trying and don't skew future sends.
+            from .models import DeviceToken
+            DeviceToken.objects.filter(token=fcm_token).delete()
+            logger.info("Removed stale FCM device token.")
+        else:
+            logger.exception("Failed to send FCM push notification.")
         return False
 
 
 def create_notification(*, user, notification_type, title, message, related_order=None):
-    from .models import Notification
+    from .models import DeviceToken, Notification
 
     notification = Notification.objects.create(
         user=user,
@@ -69,12 +80,19 @@ def create_notification(*, user, notification_type, title, message, related_orde
         message=message,
         related_order=related_order,
     )
-    sent = send_push_notification(
-        user.fcm_token,
-        title,
-        message,
-        data={"type": notification_type, "order_id": str(related_order.id) if related_order else ""},
-    )
+
+    # Send to every device this user is currently logged into, not just one.
+    tokens = list(DeviceToken.objects.filter(user=user).values_list("token", flat=True))
+    sent = False
+    for token in tokens:
+        if send_push_notification(
+            token,
+            title,
+            message,
+            data={"type": notification_type, "order_id": str(related_order.id) if related_order else ""},
+        ):
+            sent = True
+
     if sent:
         notification.sent_via_push = True
         notification.save(update_fields=["sent_via_push"])

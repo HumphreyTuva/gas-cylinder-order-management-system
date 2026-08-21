@@ -41,15 +41,22 @@ class MeView(generics.RetrieveUpdateAPIView):
 
 
 class RegisterFCMTokenView(APIView):
-    """POST /api/accounts/fcm-token/ -- register device token for push notifications."""
+    """POST /api/accounts/fcm-token/ -- register this device's push token."""
 
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         serializer = FCMTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        request.user.fcm_token = serializer.validated_data["fcm_token"]
-        request.user.save(update_fields=["fcm_token"])
+        token = serializer.validated_data["fcm_token"]
+
+        from notifications.models import DeviceToken
+
+        # The token is the unique key: if this device was previously
+        # registered to a different account (e.g. someone logged out and a
+        # different user logged in on the same phone), this correctly moves
+        # it to the current user instead of leaving it stuck on the old one.
+        DeviceToken.objects.update_or_create(token=token, defaults={"user": request.user})
         return Response({"detail": "FCM token registered."}, status=status.HTTP_200_OK)
 
 

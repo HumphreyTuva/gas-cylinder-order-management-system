@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/order.dart';
 import '../../models/payment.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/payment_service.dart';
 import '../../widgets/loading_button.dart';
 
@@ -23,6 +25,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _submitting = false;
   bool _waitingForConfirmation = false;
   String? _paymentId;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthProvider>().user;
+    if (user != null && user.phoneNumber.isNotEmpty) {
+      _phoneController.text = user.phoneNumber;
+    }
+  }
 
   Future<void> _pay() async {
     setState(() => _submitting = true);

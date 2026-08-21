@@ -96,39 +96,122 @@ class _ManagementDashboardScreenState extends State<ManagementDashboardScreen> {
               const SizedBox(height: 24),
               Text('Orders by Status', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: ordersByStatus.entries
-                    .map((e) => Chip(
-                          avatar: StatusBadge(status: e.key),
-                          label: Text('${e.value}'),
-                        ))
-                    .toList(),
+              SizedBox(
+                height: 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: ordersByStatus.entries
+                      .map((e) => Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Chip(
+                              avatar: StatusBadge(status: e.key),
+                              label: Text('${e.value}'),
+                            ),
+                          ))
+                      .toList(),
+                ),
               ),
               const SizedBox(height: 24),
-              Text('Recent Orders', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              ...recentOrders.map((o) => Card(
-                    child: ListTile(
-                      title: Text('${o['order_number']} — ${o['customer']}'),
-                      subtitle: Text('${o['cylinder_type']} • KES ${o['total_amount']}'),
-                      trailing: StatusBadge(status: o['status']),
-                    ),
-                  )),
-              const SizedBox(height: 24),
-              Text('Recent Transactions', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              ...recentTransactions.map((p) => Card(
-                    child: ListTile(
-                      title: Text('${p['order_number']} — ${p['customer']}'),
-                      subtitle: Text('${(p['method'] as String).toUpperCase()} • KES ${p['amount']}'),
-                      trailing: StatusBadge(status: p['status']),
-                    ),
-                  )),
+              _RecentActivitySection(recentOrders: recentOrders, recentTransactions: recentTransactions),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Shows Recent Orders and Recent Transactions as two tabs side by side
+/// instead of one long stacked list -- Recent Orders is shown by default.
+class _RecentActivitySection extends StatefulWidget {
+  final List<dynamic> recentOrders;
+  final List<dynamic> recentTransactions;
+  const _RecentActivitySection({required this.recentOrders, required this.recentTransactions});
+
+  @override
+  State<_RecentActivitySection> createState() => _RecentActivitySectionState();
+}
+
+class _RecentActivitySectionState extends State<_RecentActivitySection> {
+  bool _showTransactions = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ToggleTab(
+                label: 'Recent Orders',
+                selected: !_showTransactions,
+                onTap: () => setState(() => _showTransactions = false),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _ToggleTab(
+                label: 'Recent Transactions',
+                selected: _showTransactions,
+                onTap: () => setState(() => _showTransactions = true),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (!_showTransactions)
+          if (widget.recentOrders.isEmpty)
+            const Padding(padding: EdgeInsets.all(16), child: Text('No recent orders.'))
+          else
+            ...widget.recentOrders.map((o) => Card(
+                  child: ListTile(
+                    title: Text('${o['order_number']} — ${o['customer']}'),
+                    subtitle: Text('${o['cylinder_type']} • KES ${o['total_amount']}'),
+                    trailing: StatusBadge(status: o['status']),
+                  ),
+                ))
+        else if (widget.recentTransactions.isEmpty)
+          const Padding(padding: EdgeInsets.all(16), child: Text('No recent transactions.'))
+        else
+          ...widget.recentTransactions.map((p) => Card(
+                child: ListTile(
+                  title: Text('${p['order_number']} — ${p['customer']}'),
+                  subtitle: Text('${(p['method'] as String).toUpperCase()} • KES ${p['amount']}'),
+                  trailing: StatusBadge(status: p['status']),
+                ),
+              )),
+      ],
+    );
+  }
+}
+
+class _ToggleTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _ToggleTab({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF1B6F5C) : const Color(0x0D1B6F5C),
+          borderRadius: BorderRadius.circular(50),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: selected ? Colors.white : const Color(0xFF1B6F5C),
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
       ),
     );
   }
